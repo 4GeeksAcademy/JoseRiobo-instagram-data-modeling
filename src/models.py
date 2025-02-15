@@ -1,30 +1,52 @@
 import os
 import sys
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column, relationship
-from sqlalchemy import create_engine, String, ForeignKey
+from sqlalchemy import String, ForeignKey, Column, Integer, Enum
+from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
 Base = declarative_base()
 
 class Person(Base):
     __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False)
-    address: Mapped["Address"] = relationship(back_populates="person")
+    id = Column(Integer, primary_key = True, nullable= False)
+    username = Column(String(250), nullable = False)
+    firstname = Column(String(250), nullable = False)
+    lastname = Column(String(250), nullable = False)
+    email = Column(String(250), nullable = False)
+ 
+   
+
+class Follower(Base):
+    __tablename__ = "follower"
+    user_from_id = Column(Integer, primary_key = True )
+    user_to_id = Column(Integer, ForeignKey("person.id"), nullable= False)
+    user = relationship(Person)
+   
+class Post(Base):
+    __tablename__ = "post"
+    id = Column(Integer,  primary_key=True, nullable= False)
+    user_id = Column(Integer, ForeignKey("person.id"), nullable= False)
+    person = relationship(Person)
+
+class Media(Base):
+    __tablename__ = "media"
+    id = Column(Integer, primary_key=True, nullable= False)
+    type = Column(Enum("type"), nullable= False)
+    url = Column(String(250), nullable = False)
+    post_id = Column(Integer,ForeignKey("post.id"))
+    post = relationship(Post)
+
+class Comment(Base):
+    __tablename__ = "comment"
+    id = Column(Integer, primary_key=True, nullable= False)
+    comment_text = Column(String(250), nullable= False)
+    author_id = Column(Integer, ForeignKey("person.id"))
+    post_id= Column(Integer, ForeignKey("post.id"))
+    person = relationship(Person)
+    post = relationship(Post)
 
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id: Mapped[int] = mapped_column(primary_key=True)
-    street_name: Mapped[str]
-    street_number: Mapped[str]
-    post_code: Mapped[str] = mapped_column(nullable=False)
-    person_id: Mapped[int] = mapped_column(ForeignKey("person.id"))
-    person: Mapped["Person"] = relationship(back_populates="address")
 
     def to_dict(self):
         return {}
